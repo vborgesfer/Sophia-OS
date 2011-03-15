@@ -5,10 +5,14 @@
  * @date Mar 12, 2011
  */
 
+#include <boot/multiboot.h>
+
+#include <types.h>
+
+#include <mem/memory.h>
 #include <bochs.h>
 #include <io/video.h>
-#include <boot/multiboot.h>
-#include <types.h>
+
 
 /**
  * Start point of Sophia OS
@@ -23,14 +27,18 @@ void main(unsigned long magic, struct multiboot_info *mbi)
 	video_clear(VIDEO_BG_BLUE);
 	video_set_color(VIDEO_BG_BLUE | VIDEO_FG_WHITE);
 	
-	video_print("> Welcome to Sophia OS by Victor Borges, 2011\n\n");
+	video_print("> Welcome to Sophia OS by Victor Borges, 2011\n");
 	
 	bochs_print("\nWriting on bochs for debug purpose!\n");
+	
+	video_print("\n * Setting memory segmentation ");
+	memory_setup_segments();
+	video_print("....... [DONE]");
 	
 	if (magic == MULTIBOOT_BOOTLOADER_MAGIC)
 	{
 		
-		video_printf("Computer informations from %s: \n"
+		video_printf("\n\nComputer informations from %s: \n"
 			" - RAM is %dMB, uper_mem = %x, lower_mem = %x",
 			(char *) mbi->boot_loader_name,
 			(mbi->mem_upper >> 10) + 1, 
@@ -73,5 +81,6 @@ void main(unsigned long magic, struct multiboot_info *mbi)
 		video_print("\n\nsophia$");
 		
 	}
+	
 	forever asm ("hlt\n");
 }

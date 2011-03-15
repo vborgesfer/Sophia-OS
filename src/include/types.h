@@ -51,7 +51,10 @@ typedef signed long long	s64; /**< Signed number of 64 bits */
 typedef signed long int 	s32; /**< Signed number of 32 bits */
 typedef signed short int 	s16; /**< Signed number of 16 bits */
 
-/* Boolean */
+/** Boolean type */
 typedef int					boolean;
+
+/** Return value code */
+typedef unsigned int 		result;
 
 #endif /* TYPES_H_ */
