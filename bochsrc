@@ -1,0 +1,4 @@
+floppya: 1_44=fd.img, status=inserted
+megs:128
+#log: report.log
+port_e9_hack: enabled=1

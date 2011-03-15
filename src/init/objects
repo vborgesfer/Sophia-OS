@@ -1,0 +1,1 @@
+OBJECTS += init/main.o

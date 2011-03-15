@@ -1,0 +1,3 @@
+OBJECTS += arch/x86/boot.o
+OBJECTS += arch/x86/video.o
+OBJECTS += arch/x86/bochs.o
