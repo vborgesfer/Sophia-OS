@@ -8,15 +8,12 @@
 #ifndef TYPES_H_
 #define TYPES_H_
 
+#include <stddef.h>
+
 /** 
  * Looping forever 
  **/
 #define forever for(;;)
-
-/** 
- * NULL pointer 
- **/
-#define NULL 	0
 
 /* Boolean values */
 #define FALSE 	0 /**< False boolean value */
@@ -28,9 +25,9 @@
 typedef unsigned int		vaddr;
 
 /**
- * Size of an object
+ * Physical address memory
  **/
-typedef unsigned int		size_t;
+typedef unsigned int		paddr;
 
 /**
  * Generic count of objects

@@ -6,10 +6,12 @@
  */
  
  #include <mem/memory.h>
+ #include <errno.h>
  #include "gdt.h"
  
- void memory_setup_segments()
+ result memory_setup_segments()
  {
 	 gdt_setup();
+	 return OK;
  }
  

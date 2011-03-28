@@ -1,6 +1,6 @@
 /**
  * @file gdt.c
- * @brief GDT Manager
+ * @brief Implementation of GDT manager
  * @author Victor Borges
  * @date Mar 15, 2011
  */

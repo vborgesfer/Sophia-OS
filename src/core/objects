@@ -1,0 +1,2 @@
+OBJECTS += core/timer.o
+OBJECTS += core/memory.o

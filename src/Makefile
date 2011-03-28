@@ -21,6 +21,9 @@ OBJECTS =
 
 include init/objects
 include arch/$(ARCH)/objects
+include blibc/objects
+include core/objects
+OBJECTS += test/test.o
 
 # Compiling Kernel
 all: $(KERNEL)
@@ -40,6 +43,6 @@ $(KERNEL): $(OBJECTS)
 	
 # Clean objects and temporary files
 clean:
-	$(RM) *.o init/*.o arch/$(ARCH)/*.o
+	$(RM) *.o init/*.o arch/$(ARCH)/*.o blibc/*.o core/*.o test/*.o
 	$(RM) symbols.map
 

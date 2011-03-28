@@ -6,6 +6,8 @@
  */
 
 #include <io/video.h>
+#include <stdio.h>
+#include <types.h>
 #include "ioports.h"
 
 /** Number of lines in simple mode */
@@ -26,6 +28,7 @@
  */ 
 struct video_status
 {
+	boolean title;		/**< Currently image has a title */
 	unsigned int pos;	/**< Currently cursor position */
 	byte color;			/**< Currently default color */
 };
@@ -37,166 +40,141 @@ static volatile pointer video = (volatile pointer) VIDEO_ADDRESS;
 static struct video_status status;
 
 /** Calculates the new line position */
-#define NEWLINE(pos)						\
+#define NEWLINE(pos, color)						\
+	video[pos] = 0;								\
+	video[pos+1] = color;						\
 	pos = (COLUMNS*(pos/(COLUMNS << 1) + 1)) << 1
 
 void video_update_cursor()
 {
-	outb(0x0F, CRT_REG_INDEX);
-	outb((unsigned char)(status.pos & 0xFF), CRT_REG_INDEX);
+	//outb(0x0a, CRT_REG_INDEX);
+	//outb((unsigned char)(status.pos & 0xFF), CRT_REG_INDEX);
 	
-	outb(0x0E, CRT_REG_DATA);
-	outb((unsigned char )((status.pos>>8) & 0xFF), CRT_REG_DATA);
+	//outb(0x0E, CRT_REG_DATA);
+	//outb((unsigned char )((status.pos>>8) & 0xFF), CRT_REG_DATA);
+	video[status.pos] = '_';
+	video[status.pos + 1] = status.color | VIDEO_FG_BLINKING;
 }
 
 void video_setup()
 {
+	status.title = FALSE;
 	status.pos = 0;
 	status.color = VIDEO_BG_DEFAULT | VIDEO_FG_WHITE;
-	
+
 	/* Access to register 0xa ("cursor start")*/
 	outb(0x0a, CRT_REG_INDEX);
 	/* CRT Register 0xa => bit 5 = cursor OFF */
 	outb(1 << 5, CRT_REG_DATA);	
 }
 
+void video_set_title(byte color)
+{
+	int i;
+	status.title = TRUE;
+	for (i = 1; i < 2*COLUMNS; i += 2)
+		video[i] = color;
+	status.pos = 2*COLUMNS;	
+}
+
 void video_printc(const char c)
 {
+	int j;
+	if (status.pos >= 2*LINES*COLUMNS)
+		video_scrolling(1);
+		
 	if (c == '\n' || c == '\r')
 	{
-		NEWLINE(status.pos);
+		NEWLINE(status.pos, status.color);
 		if (status.pos >= 2*LINES*COLUMNS) 			
 			video_scrolling(1);
 		return;
 	}
+	if (c == '\t')
+	{
+		for (j = 0; j < 4; ++j)
+		{
+			video[status.pos++] = ' ';
+			video[status.pos++] = status.color;
+		}
+		return;
+	}
 	video[status.pos++] = c;
 	video[status.pos++] = status.color;
+	video_update_cursor();
+}
+
+void video_backspace()
+{
+	video[status.pos] = 0;	
+	video[status.pos + 1] = status.color;	
+	status.pos -= 2;
+	video[status.pos] = 0;
+	video_update_cursor();
+}
+
+void video_done (boolean ok)
+{
+	int i = status.pos % (COLUMNS << 1);
+	for (; i < (COLUMNS << 1) - 16; i += 2)
+	{
+		video[status.pos++] = '.';
+		video[status.pos++] = status.color;
+	}
+	if (ok)
+		video_print(" [DONE] ");
+	else
+		video_print(" [FAIL] ");
+	if (status.pos >= 2*LINES*COLUMNS) 			
+		video_scrolling(1);
 }
 
 void video_print(const char * str)
 {
-	int i = 0;		
+	int i = 0, j;		
 	for (i = 0; str[i]; i++)
 	{
 		if (str[i] == '\n' || str[i] == '\r')
 		{
-			NEWLINE(status.pos);
+			NEWLINE(status.pos, status.color);
 			if (status.pos >= 2*LINES*COLUMNS) 			
 				video_scrolling(1);
+			continue;
+		}
+		if (str[i] == '\t')
+		{
+			for (j = 0; j < 4; ++j)
+			{
+				video[status.pos++] = ' ';
+				video[status.pos++] = status.color;
+			}
 			continue;
 		}
 		video[status.pos++] = str[i];
 		video[status.pos++] = status.color;
 	}
+	video_update_cursor();
+	if (status.pos >= 2*LINES*COLUMNS) 			
+		video_scrolling(1);
 }
 
-static void toString(int number, char * buff, int base)
-{
-	char inv_buff[16];
-	int offset = 0;
-	int m10;
-	int i = 0;
-	
-	do {
-		m10 = number % base;
-		m10 = (m10 < 0) ? -m10 : m10;
-		inv_buff[offset++] = (char)('0'+ m10);
-		number = number/base;
-	} while (number);
-	
-	offset--;
-	for (i = 0; offset >= 0; offset--, i++)
-		buff[i] = inv_buff[offset];
-	
-	buff[i] = '\0';
-}
-
-static void toHex(int number, char * buff)
-{
-	boolean skipZeros = TRUE;
-	int offset = 0;
-	unsigned int hexa;
-	int i;
-	
-	buff[offset++] = '0';
-	buff[offset++] = 'x';
-	
-	for (i = 0; i < 8; i++)
-	{
-		hexa = (unsigned int)(number << (i << 2));
-		hexa = (hexa >> 28) & 0xf;
-		if (hexa == 0)
-		{
-			if (!skipZeros)
-				buff[offset++] = '0';
-		}
-		else
-		{
-			skipZeros = FALSE;
-			if (hexa < 10)
-				buff[offset++] = '0' + hexa;
-			else
-				buff[offset++] = 'a' + (hexa - 10);
-		}
-	}
-	if (skipZeros)
-		buff[offset++] = '0';
-		
-	buff[offset] = '\0';
-}
-
+/**
+ *	@deprecated
+ **/
 void video_printf(char * format, ...)
 {
-	char *p;
-	int c;
-	char buff[32];
-	char ** arg = (char**) &format;
-	
-	arg++;
-	
-	c = *format++;
-	while(c)
-	{
-		if (c != '%')
-			video_printc(c);
-		else
-		{
-			c = *format++;
-			switch (c)
-			{
-				case 'u':
-				case 'd':				
-					toString(*((int *) arg++), buff, 10);
-					video_print(buff);
-					break;
-				case 'x':
-					toHex(*((int *) arg++), buff);
-					video_print(buff);
-					break;
-				case 'b':
-					toString(*((int *) arg++), buff, 2);
-					video_print(buff);
-					break;
-				case 's':
-					p = *arg++;
-					if (!p)
-						p = "(null)";
-					video_print(p);
-					break;
-				default:
-					video_printc(*((int *) arg++));
-					break;
-			}
-		}
-		c = *format++;
-	}
+	va_list arg_ptr;
+	va_start(arg_ptr, format);
+	vprintf(format, arg_ptr);
+	va_end(arg_ptr);
 }
 
 void video_newline()
 {
-	NEWLINE(status.pos);
+	NEWLINE(status.pos, status.color);
 	if (status.pos >= 2*LINES*COLUMNS) 			
 		video_scrolling(1);
+	video_update_cursor();
 }
 
 void video_clear(byte bkColor)
@@ -207,20 +185,23 @@ void video_clear(byte bkColor)
 		video[i++] = 0;
 		video[i++] = bkColor;
 	}
-	status.pos = 0;	
+	status.pos = 0;
+	video_update_cursor();
 }
 
 void video_scrolling(int nblines)
 {
-	int i;
-	for (i = 2*nblines*COLUMNS; i < 2*LINES*COLUMNS; i++)
+	int i = (status.title ?  2*(nblines + 1)*COLUMNS : 2*nblines*COLUMNS);
+	for (; i < 2*LINES*COLUMNS; i++)
 		video[i - 2*nblines*COLUMNS] = video[i];
-	for (i = 2*(LINES-nblines)*COLUMNS; i < 2*LINES*COLUMNS;)
+	i = (status.title ?  2*(LINES-nblines)*COLUMNS : 2*(LINES-nblines)*COLUMNS);
+	for (; i < 2*LINES*COLUMNS;)
 	{
 		video[i++] = 0;
 		video[i++] = status.color;
 	}
-	status.pos -= nblines*COLUMNS;
+	status.pos -= 2*nblines*COLUMNS;
+	video_update_cursor();
 }
 
 void video_set_color(byte newColor)
@@ -231,13 +212,22 @@ void video_set_color(byte newColor)
 void video_put(const char * str, byte newColor,
 		const int row, const int col)
 {
-	int i;
+	int i, j;
 	int position = 2*(row*COLUMNS + col);
 	for (i = 0; str[i]; i++)
 	{
 		if (str[i] == '\n' || str[i] == '\r')
 		{
-			NEWLINE(position);
+			NEWLINE(position, newColor);
+			continue;
+		}
+		if (str[i] == '\t')
+		{
+			for (j = 0; j < 4; ++j)
+			{
+				video[position++] = ' ';
+				video[position++] = newColor;
+			}
 			continue;
 		}
 		video[position++] = str[i];
@@ -248,10 +238,20 @@ void video_put(const char * str, byte newColor,
 void video_putc(char c, const byte newColor,
 		const int row, const int col)
 {
+	int j;
 	int position = 2*(row*COLUMNS + col);
 	if (c == '\n' || c == '\r')
 	{
-		NEWLINE(position);
+		NEWLINE(position, newColor);
+		return;
+	}
+	if (c == '\t')
+	{
+		for (j = 0; j < 4; ++j)
+		{
+			video[position++] = ' ';
+			video[position++] = newColor;
+		}
 		return;
 	}
 	video[position++] = c;

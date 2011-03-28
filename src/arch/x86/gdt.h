@@ -1,6 +1,6 @@
 /**
  * @file gdt.h
- * @brief GDT Manager
+ * @brief Manage GDT
  * @author Victor Borges
  * @date Mar 15, 2011
  */

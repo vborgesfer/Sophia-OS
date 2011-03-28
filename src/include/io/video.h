@@ -48,6 +48,12 @@
 void video_setup();
 
 /**
+ * Initialize title bar
+ * @param bkColor	Background color to clean
+ */
+void video_set_title(byte color);
+
+/**
  * Choose default color
  * @param color		Default color chose
  **/
@@ -66,6 +72,11 @@ inline void video_printc(const char c);
 void video_print(const char * str);
 
 /**
+ * Clean up the last character printed and update the position
+ **/
+void video_backspace();
+
+/**
  * Print a formatted string using default status
  * @param str	format
  * @note STD C format supported: \%s, \%d, \%b and \%x
@@ -76,6 +87,12 @@ void video_printf(char * format, ...);
  * Updates default status adding a new line
  **/
 void video_newline();
+
+/**
+ * Print "." and [done] or [fail], it depends on ok.
+ * @param ok	is done
+ **/
+void video_done(boolean ok);
 
 /**
  * Scrol the text in video
@@ -92,7 +109,7 @@ void video_clear(byte bkColor);
 /**
  * Update video cursor for the currently position
  **/
-void video_update_cursor();
+inline void video_update_cursor();
 
 /**
  * Print a character chossing position

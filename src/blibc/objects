@@ -1,0 +1,7 @@
+OBJECTS += blibc/assert.o
+OBJECTS += blibc/ctype.o
+OBJECTS += blibc/string.o
+OBJECTS += blibc/stdlib.o
+OBJECTS += blibc/stdio.o
+OBJECTS += blibc/errno.o
+OBJECTS += blibc/time.o
