@@ -32,8 +32,8 @@ all: $(KERNEL)
 
 $(KERNEL): $(OBJECTS)
 	$(LD) $(LDFLAGS) -o $(KERNEL) $^
-	-nm -C $(KERNEL) | cut -d ' ' -f 1,3 > symbols.map
-	size $(KERNEL)
+#	-nm -C $(KERNEL) | cut -d ' ' -f 1,3 > symbols.map
+#	size $(KERNEL)
 
 # Create objects from C source code
 %.o: %.c

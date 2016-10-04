@@ -20,7 +20,7 @@ export ARCH = x86
 export PREFIX=${HOME}/opt/cross
 export TARGET=i686-elf
 
-export PATH:=${PREFIX}/bin:$(PATH)
+export PATH:=${PREFIX}/bin
 
 KERNEL = sophia.elf
 ISO = sophia.iso
@@ -83,10 +83,11 @@ clean:
 	make -C src clean
 	$(RM) $(KERNEL)
 	$(RM) -r isodir
+	$(RM) sophia.iso
 	
 # Remove documentation files
 dist: clean
-	$(RM) sophia.iso
+	make -C doc clean
 	
 # Remove documentation files
 rmdocs:
