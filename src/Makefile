@@ -8,11 +8,11 @@
 #
 # Copyright (C) 2011 by Victor Borges
 #
-export PREFIX="${HOME}/opt/cross/"
-export TARGET=i686-elf
+#export PREFIX="${HOME}/opt/cross/"
+#export TARGET=i686-elf
 
-CC			= ${TARGET}-gcc
-LD			= ${TARGET}-ld
+CC			= $(TARGET)-gcc
+LD			= $(TARGET)-ld
 
 CFLAGS		= -Wall -nostdinc -fno-stack-protector -ffreestanding 
 CFLAGS		+= -Iinclude -D_KERNEL_
@@ -37,6 +37,7 @@ $(KERNEL): $(OBJECTS)
 
 # Create objects from C source code
 %.o: %.c
+	@echo $(PATH)
 	$(CC) -c $< $(CFLAGS) -o $@
 		
 # Create objects from assembler (.S) source code

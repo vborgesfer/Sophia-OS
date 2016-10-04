@@ -15,17 +15,12 @@ export SUBLEVEL = 1
 
 # Define architecure
 export ARCH = x86
-
-
-export PREFIX=${HOME}/opt/cross
+#
+# You must add the cross compiler to your path!
 export TARGET=i686-elf
-
-export PATH:=${PREFIX}/bin
 
 KERNEL = sophia.elf
 ISO = sophia.iso
-
-BOCHS_CONF = bochsrc
 
 # Compiling Kernel
 all: $(KERNEL)
@@ -38,7 +33,7 @@ version" $(VERSION).$(PATCHLEVEL).$(SUBLEVEL)
 	@echo "Copyright (C) 2011 by Victor Borges"
 	@echo "Please see COPYING for licensing information."
 	@echo
-	@echo "Usage: make [ all | clean | help | bochs] " 
+	@echo "Usage: make [ all | clean | help ] " 
 	@echo "         all     - Make kernel ELF file"
 	@echo "         iso     - Make an iso image with GRUB"
 	@echo "         help    - Display this help" 
