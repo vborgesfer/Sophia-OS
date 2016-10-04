@@ -16,8 +16,14 @@ export SUBLEVEL = 1
 # Define architecure
 export ARCH = x86
 
+
+export PREFIX=${HOME}/opt/cross
+export TARGET=i686-elf
+
+export PATH:=${PREFIX}/bin:$(PATH)
+
 KERNEL = sophia.elf
-FLOPPY_IMAGE = fd.img
+ISO = sophia.iso
 
 BOCHS_CONF = bochsrc
 
@@ -33,15 +39,14 @@ version" $(VERSION).$(PATCHLEVEL).$(SUBLEVEL)
 	@echo "Please see COPYING for licensing information."
 	@echo
 	@echo "Usage: make [ all | clean | help | bochs] " 
-	@echo "         all     - Make kernel binary"
-	@echo "         fdimg   - Make a floppy image with GRUB Legacy"
-	@echo "         help    - Display help" 
+	@echo "         all     - Make kernel ELF file"
+	@echo "         iso     - Make an iso image with GRUB"
+	@echo "         help    - Display this help" 
 	@echo "         -------------------------------------------"
 	@echo "         clean   - Clean objects and temporary files" 
 	@echo "         rmdocs  - Remove documentation files" 
 	@echo "         dist    - Clean all files" 
 	@echo "         -------------------------------------------"
-	@echo "         bochs   - Run Sophia in bochs" 
 	@echo "         qemu    - Run Sophia in qemu" 
 	@echo "         -------------------------------------------"
 	@echo "         docs    - Make documentation using doxygen"
@@ -49,20 +54,21 @@ version" $(VERSION).$(PATCHLEVEL).$(SUBLEVEL)
 	@echo
 
 # Creating floppy with GRUB
-fdimg:  $(KERNEL)
-	make -C grub floppy
+iso:  $(KERNEL)
+	mkdir -p isodir/boot/grub
+	cp grub/grub.cfg isodir/boot/grub/
+	cp sophia.elf isodir/boot
+	grub-mkrescue -o sophia.iso isodir
+
+$(ISO): iso
 	
 # Compiling Kernel
 $(KERNEL):
 	make -C src
-	
-# Lauching with bochs
-bochs: $(BOCHS_CONF) $(FLOPPY_IMAGE)
-	yes c | bochs -q
-
+#
 # Lauching with qemu	
-qemu: 
-	@echo "Feature not supported."
+qemu: $(ISO)
+	qemu-system-i386 -cdrom $(ISO)
 	
 # Create documentation
 docs:
@@ -74,13 +80,13 @@ latex: docs
 
 # Clean objects and temporary files
 clean:
-	make -C src clean	
-	make -C grub clean
+	make -C src clean
 	$(RM) $(KERNEL)
+	$(RM) -r isodir
 	
 # Remove documentation files
 dist: clean
-	$(RM) fd.img
+	$(RM) sophia.iso
 	
 # Remove documentation files
 rmdocs:

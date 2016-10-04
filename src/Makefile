@@ -8,9 +8,11 @@
 #
 # Copyright (C) 2011 by Victor Borges
 #
+export PREFIX="${HOME}/opt/cross/"
+export TARGET=i686-elf
 
-CC			= gcc
-LD			= ld
+CC			= ${TARGET}-gcc
+LD			= ${TARGET}-ld
 
 CFLAGS		= -Wall -nostdinc -fno-stack-protector -ffreestanding 
 CFLAGS		+= -Iinclude -D_KERNEL_
